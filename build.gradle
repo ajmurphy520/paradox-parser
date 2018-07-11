@@ -1,0 +1,16 @@
+group 'enigma'
+version '0.0.1-SNAPSHOT'
+
+apply plugin: 'groovy'
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.4.9'
+    testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
+}
