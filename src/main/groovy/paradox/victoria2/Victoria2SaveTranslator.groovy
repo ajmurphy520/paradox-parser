@@ -91,9 +91,22 @@ class Victoria2SaveTranslator {
         if (provinceData.rgo != null) {
             provinceRGO.outputGood = provinceData.rgo.goods_type
             provinceRGO.productionAmount = parseToBigDecimal(provinceData.rgo.last_income) / marketData.currentPrice."${provinceRGO.outputGood}" / 1000.0
+            provinceRGO.employees = processRGOEmployees(provincePops, provinceData.rgo.employment.employees)
         }
 
         return provinceRGO
+    }
+
+    private List<EmployedPopulation> processRGOEmployees(Map<String, List<Population>> provincePops, def employmentData) {
+        List<EmployedPopulation> returnResult = []
+        employmentData.each { employees ->
+            String popType = getPopTypeFromString(employees.province_pop_id.type)
+            EmployedPopulation employedPopulation = new EmployedPopulation()
+            employedPopulation.population = provincePops."${popType}"[parseToInteger(employees.province_pop_id.index)]
+            employedPopulation.numberEmployed = parseToInteger(employmentData.count)
+            returnResult << employedPopulation
+        }
+        return returnResult
     }
 
     private static Integer parseToInteger(String input) {
@@ -102,5 +115,9 @@ class Victoria2SaveTranslator {
 
     private static BigDecimal parseToBigDecimal(String input) {
         return input != null ? input.toBigDecimal() : 0.0
+    }
+
+    private String getPopTypeFromString(String popType) {
+        return configData.popTypes[popType.toInteger() - 1]
     }
 }
