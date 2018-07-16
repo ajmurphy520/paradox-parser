@@ -7,6 +7,10 @@ class Country {
     BigDecimal money
     Map<String, State> states = new HashMap<>()
 
+    Country(String tag) {
+        this.tag = tag
+    }
+
     void addState(State state) {
         states.put(state.stateId, state)
     }

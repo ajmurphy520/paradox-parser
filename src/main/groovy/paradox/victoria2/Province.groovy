@@ -7,4 +7,8 @@ class Province {
     Country owner
     Map<String, List<Population>> pops = new HashMap<>()
     RGO rgo
+
+    Province(String id) {
+        this.id = id
+    }
 }

@@ -119,12 +119,6 @@ class SaveParserSpec extends Specification {
         saveGame.government == '7'
     }
 
-    void "test big file"() {
-        given:
-        File realSave = new File(SaveParserSpec.classLoader.getResource('paradox/parser/Sweden1844_11_28.v2').file)
-        def testGame = SaveParser.parseSaveGameFile(realSave)
-    }
-
     private static File createTempTestFile() {
         File testFile = File.createTempFile('test', '.txt')
         testFile.deleteOnExit()
