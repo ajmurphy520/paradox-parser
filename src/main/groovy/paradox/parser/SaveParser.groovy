@@ -5,14 +5,10 @@ import java.util.regex.Pattern
 class SaveParser {
 
     private static Pattern DOUBLE_QUOTE_PATTERN = Pattern.compile('"')
-    private static String DATA_ARRAY_REGEX = "\\s*(-?[0-9,\\.]+\\s+)*}?"
-
-    private static char[] WHITESPACE_CHARACTERS = ['\\s', '\\t'] as char[]
 
     private Reader reader
     private String currentLine
 
-    private char nextCharacter
     private int linesRead = 0
 
     private SaveParser(Reader reader) {
@@ -39,7 +35,7 @@ class SaveParser {
 
     private def parseGameObject() {
         readNextNonEmptyLine()
-        if (currentLine.contains('=')) {
+        if (currentLine.contains('=') || currentLine == '}') {
             return parsePropertyObject()
         } else if (currentLine.startsWith('{')) {
             return parseObjectList()
@@ -114,7 +110,7 @@ class SaveParser {
     private void readNextNonEmptyLine() {
         currentLine = reader.readLine()
         linesRead++
-        while (currentLine != null && currentLine .trim() == '') {
+        while (currentLine != null && currentLine.trim() == '') {
             currentLine = reader.readLine()
             linesRead++
         }
