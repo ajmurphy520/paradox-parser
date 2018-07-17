@@ -11,7 +11,8 @@ class Population {
     BigDecimal everydayNeeds
     BigDecimal luxuryNeeds
 
-    Good output
+    //Artisan data
+    String outputGood
     BigDecimal productionAmount
     BigDecimal leftover
     Map<String, BigDecimal> stockpile = new HashMap<>()

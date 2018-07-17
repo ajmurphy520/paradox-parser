@@ -81,9 +81,23 @@ class Victoria2SaveTranslator {
         singlePop.everydayNeeds = parseToBigDecimal(popData.everyday_needs)
         singlePop.luxuryNeeds = parseToBigDecimal(popData.luxury_needs)
 
-        //TODO artisan data
+        if (popType == 'artisan') {
+            singlePop.outputGood = getGoodTypeFromProductionType(popData.production_type)
+            singlePop.productionAmount = parseToBigDecimal(popData.current_producing)
+            singlePop.leftover = parseToBigDecimal(popData.leftover)
+            singlePop.stockpile = processGoodAmounts(popData.stockpile)
+            singlePop.needs = processGoodAmounts(popData.needs)
+            singlePop.spending = parseToBigDecimal(popData.last_spending)
+            singlePop.income = parseToBigDecimal(popData.production_income)
+            singlePop.soldDomestic = parseToBigDecimal(popData.percent_sold_domestic)
+            singlePop.soldExport = parseToBigDecimal(popData.percent_sold_export)
+        }
 
         return singlePop
+    }
+
+    private String getGoodTypeFromProductionType(String productionType) {
+        return productionType
     }
 
     private RGO processProvinceRGO(Market marketData, Map<String, List<Population>> provincePops, def provinceData) {
@@ -109,15 +123,23 @@ class Victoria2SaveTranslator {
         return returnResult
     }
 
+    private String getPopTypeFromString(String popType) {
+        return configData.popTypes[popType.toInteger() - 1]
+    }
+
+    private static Map<String, BigDecimal> processGoodAmounts(def goodsData) {
+        Map<String, BigDecimal> goodAmounts = [:]
+        goodsData.each { dataEntry ->
+            goodAmounts."${dataEntry.key}" = parseToBigDecimal(dataEntry.value)
+        }
+        return goodAmounts
+    }
+
     private static Integer parseToInteger(String input) {
         return input != null ? input.toInteger() : 0
     }
 
     private static BigDecimal parseToBigDecimal(String input) {
         return input != null ? input.toBigDecimal() : 0.0
-    }
-
-    private String getPopTypeFromString(String popType) {
-        return configData.popTypes[popType.toInteger() - 1]
     }
 }
