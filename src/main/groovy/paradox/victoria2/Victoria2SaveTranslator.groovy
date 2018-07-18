@@ -37,6 +37,10 @@ class Victoria2SaveTranslator {
             Country currentCountry = gameState.getCountry(tag)
             processCountry(currentCountry, saveGame."${tag}")
             processCountryStates(gameState, currentCountry, saveGame."${tag}".state)
+            if (saveGame."${tag}".creditor != null) {
+                processCountryCreditors(gameState, currentCountry, saveGame."${tag}".creditor)
+            }
+            //todo process sphere
         }
     }
 
@@ -52,7 +56,6 @@ class Victoria2SaveTranslator {
             currentCountry.savedSupply."${goodType}" = parseToBigDecimal(countryData.saved_country_supply."${goodType}")
             currentCountry.maxBought."${goodType}" = parseToBigDecimal(countryData.max_bought."${goodType}")
         }
-        //todo process creditor info
     }
 
     private void processCountryStates(Victoria2Game gameState, Country currentCountry, def stateData) {
@@ -111,6 +114,30 @@ class Victoria2SaveTranslator {
         factory.stockpile = processGoodAmounts(factoryData.stockpile)
         factory.employees = processEmployees(gameState.provinces, factoryData.employment.employees)
         return factory
+    }
+
+    private void processCountryCreditors(Victoria2Game gameState, Country currentCountry, def creditorData) {
+        Map<String, Creditor> creditors = [:]
+        if (creditorData instanceof List) {
+            creditorData.each { creditor ->
+                creditors << processSingleCreditor(gameState, creditor)
+            }
+        } else {
+            creditors << processSingleCreditor(gameState, creditorData)
+        }
+        currentCountry.creditors
+    }
+
+    private Map<String, Creditor> processSingleCreditor(Victoria2Game gameState, def creditorData) {
+        Map<String, Creditor> creditorEntry = [:]
+        if (creditorData.country != '---') {
+            Creditor creditor = new Creditor()
+            creditor.country = gameState.countries."${creditorData.country}"
+            creditor.interest = parseToBigDecimal(creditorData.interest)
+            creditor.debt = parseToBigDecimal(creditorData.debt)
+            creditorEntry.put(creditorData.country, creditor)
+        }
+        return creditorEntry
     }
 
     private void processProvinces(Victoria2Game gameState, Map<String, Object> saveGame) {

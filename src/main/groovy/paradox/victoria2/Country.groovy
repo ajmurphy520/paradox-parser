@@ -13,6 +13,7 @@ class Country {
     Map<String, BigDecimal> savedSupply = [:]
     Map<String, BigDecimal> maxBought = [:]
     Map<String, State> states = [:]
+    Map<String, Creditor> creditors = [:]
 
     Country(String tag) {
         this.tag = tag
