@@ -17,7 +17,7 @@ class Victoria2SaveTranslator {
 
         return gameState
     }
-    
+
     private void processMarketData(Victoria2Game gameState, def worldMarketData) {
         Market market = new Market()
         configData.goodTypes.keySet().each { goodType ->
@@ -57,7 +57,7 @@ class Victoria2SaveTranslator {
 
     private void processCountryStates(Victoria2Game gameState, Country currentCountry, def stateData) {
         if (stateData instanceof List) {
-            stateData.each {singleState ->
+            stateData.each { singleState ->
                 currentCountry.addState(processSingleState(gameState, singleState))
             }
         } else if (stateData != null) {
@@ -70,7 +70,7 @@ class Victoria2SaveTranslator {
         state.stateId = stateData.id.id
         state.savings = parseToBigDecimal(stateData.savings)
         state.interest = parseToBigDecimal(stateData.interest)
-        stateData.provinces.each {String stateProvince ->
+        stateData.provinces.each { String stateProvince ->
             state.stateProvinces.put(stateProvince, gameState.provinces."${stateProvince}")
         }
         if (stateData.popproject != null) {
@@ -79,37 +79,48 @@ class Victoria2SaveTranslator {
             state.popProject = popProject
         }
         if (stateData.state_buildings != null) {
-            state.factories = processStateFactories(stateData.state_buildings)
+            state.factories = processStateFactories(gameState, stateData.state_buildings)
         }
         return state
     }
 
-    private List<Factory> processStateFactories(def factoryData) {
+    private List<Factory> processStateFactories(Victoria2Game gameState, def factoryData) {
         List<Factory> factories = []
         if (factoryData instanceof List) {
-            factoryData.each {singleFactory ->
-                factories << processSingleFactory(singleFactory)
+            factoryData.each { singleFactory ->
+                factories << processSingleFactory(gameState, singleFactory)
             }
         } else {
-            factories << processSingleFactory(factoryData)
+            factories << processSingleFactory(gameState, factoryData)
         }
 
         return factories
     }
 
-    private Factory processSingleFactory(def factoryData) {
+    private Factory processSingleFactory(Victoria2Game gameState, def factoryData) {
         Factory factory = new Factory()
+        factory.factoryType = factoryData.building
+        factory.output = getGoodTypeFromProductionType(factory.factoryType)
+        factory.factoryLevel = parseToInteger(factoryData.level)
+        factory.money = parseToBigDecimal(factoryData.money)
+        factory.spending = parseToBigDecimal(factoryData.last_spending)
+        factory.income = parseToBigDecimal(factoryData.last_income)
+        factory.paychecks = parseToBigDecimal(factoryData.pops_paychecks)
+        factory.productionAmount = parseToBigDecimal(factoryData.produces)
+        factory.leftover = parseToBigDecimal(factoryData.leftover)
+        factory.stockpile = processGoodAmounts(factoryData.stockpile)
+        factory.employees = processEmployees(gameState.provinces, factoryData.employment.employees)
         return factory
     }
 
     private void processProvinces(Victoria2Game gameState, Map<String, Object> saveGame) {
-        saveGame.findAll {it.key.matches('[0-9]+')}.each { provinceEntry ->
+        saveGame.findAll { it.key.matches('[0-9]+') }.each { provinceEntry ->
             Province province = new Province(provinceEntry.key)
+            gameState.addProvince(province)
             province.name = provinceEntry.value.name
             province.owner = gameState.getCountry(provinceEntry.value.owner)
             province.pops = processProvincePopData(provinceEntry.key, provinceEntry.value)
-            province.rgo = processProvinceRGO(gameState.marketData, province.pops, provinceEntry.value)
-            gameState.addProvince(province)
+            province.rgo = processProvinceRGO(gameState, provinceEntry.value)
         }
     }
 
@@ -161,25 +172,26 @@ class Victoria2SaveTranslator {
     }
 
     private String getGoodTypeFromProductionType(String productionType) {
-        return productionType
+        return configData.factoryTypes."${productionType}"
     }
 
-    private RGO processProvinceRGO(Market marketData, Map<String, List<Population>> provincePops, def provinceData) {
+    private RGO processProvinceRGO(Victoria2Game gameState, def provinceData) {
         RGO provinceRGO = new RGO()
         if (provinceData.rgo != null) {
             provinceRGO.outputGood = provinceData.rgo.goods_type
-            provinceRGO.productionAmount = parseToBigDecimal(provinceData.rgo.last_income) / marketData.currentPrice."${provinceRGO.outputGood}" / 1000.0
-            provinceRGO.employees = processRGOEmployees(provincePops, provinceData.rgo.employment.employees)
+            provinceRGO.productionAmount = parseToBigDecimal(provinceData.rgo.last_income) / gameState.marketData.currentPrice."${provinceRGO.outputGood}" / 1000.0
+            provinceRGO.employees = processEmployees(gameState.provinces, provinceData.rgo.employment.employees)
         }
 
         return provinceRGO
     }
 
-    private List<EmployedPopulation> processRGOEmployees(Map<String, List<Population>> provincePops, def employmentData) {
+    private List<EmployedPopulation> processEmployees(Map<String, Province> provinces, def employmentData) {
         List<EmployedPopulation> returnResult = []
         employmentData.each { employees ->
             String popType = getPopTypeFromString(employees.province_pop_id.type)
             EmployedPopulation employedPopulation = new EmployedPopulation()
+            Map<String, List<Population>> provincePops = provinces."${employees.province_pop_id.province_id}".pops
             employedPopulation.population = provincePops."${popType}"[parseToInteger(employees.province_pop_id.index)]
             employedPopulation.numberEmployed = parseToInteger(employmentData.count)
             returnResult << employedPopulation
