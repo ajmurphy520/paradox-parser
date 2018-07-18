@@ -40,7 +40,9 @@ class Victoria2SaveTranslator {
             if (saveGame."${tag}".creditor != null) {
                 processCountryCreditors(gameState, currentCountry, saveGame."${tag}".creditor)
             }
-            //todo process sphere
+            if (saveGame."${tag}".influence != null) {
+                processSphereMembership(gameState, currentCountry, saveGame."${tag}")
+            }
         }
     }
 
@@ -138,6 +140,14 @@ class Victoria2SaveTranslator {
             creditorEntry.put(creditorData.country, creditor)
         }
         return creditorEntry
+    }
+
+    private void processSphereMembership(Victoria2Game gameState, Country sphereLeader, def countryData) {
+        configData.countryTags.each { tag ->
+            if (countryData."${tag}" != null && parseToInteger(countryData."${tag}".level) == 5) {
+                gameState.sphereMembership.put(tag, sphereLeader)
+            }
+        }
     }
 
     private void processProvinces(Victoria2Game gameState, Map<String, Object> saveGame) {

@@ -3,8 +3,9 @@ package paradox.victoria2
 class Victoria2Game {
 
     Market marketData
-    Map<String, Country> countries = new HashMap<>()
-    Map<String, Province> provinces = new HashMap<>()
+    Map<String, Country> countries = [:]
+    Map<String, Province> provinces = [:]
+    Map<String, Country> sphereMembership = [:]
 
     void addCountry(Country country) {
         countries.put(country.tag, country)
