@@ -20,7 +20,7 @@ class Victoria2SaveTranslator {
     
     private void processMarketData(Victoria2Game gameState, def worldMarketData) {
         Market market = new Market()
-        worldMarketData.price_pool.keySet().each { goodType ->
+        configData.goodTypes.keySet().each { goodType ->
             market.currentPrice."${goodType}" = parseToBigDecimal(worldMarketData.price_pool."${goodType}")
             market.currentSupply."${goodType}" = parseToBigDecimal(worldMarketData.supply_pool."${goodType}")
             market.currentSupplyWorld."${goodType}" = parseToBigDecimal(worldMarketData.worldmarket_pool."${goodType}")
@@ -35,7 +35,71 @@ class Victoria2SaveTranslator {
     private void processCountries(Victoria2Game gameState, Map<String, Object> saveGame) {
         configData.countryTags.each { tag ->
             Country currentCountry = gameState.getCountry(tag)
+            processCountry(currentCountry, saveGame."${tag}")
+            processCountryStates(gameState, currentCountry, saveGame."${tag}".state)
         }
+    }
+
+    private void processCountry(Country currentCountry, def countryData) {
+        currentCountry.money = parseToBigDecimal(countryData.money)
+        currentCountry.bank = parseToBigDecimal(countryData.bank.money)
+        currentCountry.moneyLent = parseToBigDecimal(countryData.bank.money_lent)
+        configData.goodTypes.keySet().each { goodType ->
+            currentCountry.domesticSupply."${goodType}" = parseToBigDecimal(countryData.domestic_supply_pool."${goodType}")
+            currentCountry.domesticSold."${goodType}" = parseToBigDecimal(countryData.sold_supply_pool."${goodType}")
+            currentCountry.domesticDemand."${goodType}" = parseToBigDecimal(countryData.domestic_demand_pool."${goodType}")
+            currentCountry.actualSold."${goodType}" = parseToBigDecimal(countryData.actual_sold_domestic."${goodType}")
+            currentCountry.savedSupply."${goodType}" = parseToBigDecimal(countryData.saved_country_supply."${goodType}")
+            currentCountry.maxBought."${goodType}" = parseToBigDecimal(countryData.max_bought."${goodType}")
+        }
+        //todo process creditor info
+    }
+
+    private void processCountryStates(Victoria2Game gameState, Country currentCountry, def stateData) {
+        if (stateData instanceof List) {
+            stateData.each {singleState ->
+                currentCountry.addState(processSingleState(gameState, singleState))
+            }
+        } else if (stateData != null) {
+            currentCountry.addState(processSingleState(gameState, stateData))
+        }
+    }
+
+    private State processSingleState(Victoria2Game gameState, def stateData) {
+        State state = new State()
+        state.stateId = stateData.id.id
+        state.savings = parseToBigDecimal(stateData.savings)
+        state.interest = parseToBigDecimal(stateData.interest)
+        stateData.provinces.each {String stateProvince ->
+            state.stateProvinces.put(stateProvince, gameState.provinces."${stateProvince}")
+        }
+        if (stateData.popproject != null) {
+            PopProject popProject = new PopProject()
+            popProject.money = parseToBigDecimal(stateData.popproject.money)
+            state.popProject = popProject
+        }
+        if (stateData.state_buildings != null) {
+            state.factories = processStateFactories(stateData.state_buildings)
+        }
+        return state
+    }
+
+    private List<Factory> processStateFactories(def factoryData) {
+        List<Factory> factories = []
+        if (factoryData instanceof List) {
+            factoryData.each {singleFactory ->
+                factories << processSingleFactory(singleFactory)
+            }
+        } else {
+            factories << processSingleFactory(factoryData)
+        }
+
+        return factories
+    }
+
+    private Factory processSingleFactory(def factoryData) {
+        Factory factory = new Factory()
+        return factory
     }
 
     private void processProvinces(Victoria2Game gameState, Map<String, Object> saveGame) {
