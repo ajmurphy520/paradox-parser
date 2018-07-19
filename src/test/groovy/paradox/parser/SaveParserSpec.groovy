@@ -146,6 +146,17 @@ class SaveParserSpec extends Specification {
         saveGame.property[1].property2 == 'someValue4'
     }
 
+    void "should ignore comments"() {
+        given:
+        testFile << 'property=someValue  #this is a comment'
+
+        when:
+        def saveGame = SaveParser.parseSaveGameFile(testFile)
+
+        then:
+        saveGame.property == 'someValue'
+    }
+
     private static File createTempTestFile() {
         File testFile = File.createTempFile('test', '.txt')
         testFile.deleteOnExit()

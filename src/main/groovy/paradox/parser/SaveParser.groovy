@@ -5,6 +5,7 @@ import java.util.regex.Pattern
 class SaveParser {
 
     private static Pattern DOUBLE_QUOTE_PATTERN = Pattern.compile('"')
+    private static String COMMENT_PATTERN = '#.*'
 
     private Reader reader
     private String currentLine
@@ -111,14 +112,19 @@ class SaveParser {
 
     private void readNextNonEmptyLine() {
         currentLine = reader.readLine()
+        if (currentLine != null) {
+            currentLine = currentLine.replaceAll(COMMENT_PATTERN, '')
+            currentLine = currentLine.trim()
+        }
         linesRead++
-        while (currentLine != null && currentLine.trim() == '') {
+
+        while (currentLine != null && currentLine == '') {
             currentLine = reader.readLine()
             linesRead++
-        }
-
-        if (currentLine != null) {
-            currentLine = currentLine.trim()
+            if (currentLine != null) {
+                currentLine = currentLine.replaceAll(COMMENT_PATTERN, '')
+                currentLine = currentLine.trim()
+            }
         }
     }
 }
