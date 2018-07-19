@@ -231,7 +231,7 @@ class Victoria2SaveTranslator {
             EmployedPopulation employedPopulation = new EmployedPopulation()
             Map<String, List<Population>> provincePops = provinces."${employees.province_pop_id.province_id}".pops
             employedPopulation.population = provincePops."${popType}"[parseToInteger(employees.province_pop_id.index)]
-            employedPopulation.numberEmployed = parseToInteger(employmentData.count)
+            employedPopulation.numberEmployed = parseToInteger(employees.count)
             returnResult << employedPopulation
         }
         return returnResult

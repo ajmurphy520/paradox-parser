@@ -51,6 +51,8 @@ class SaveParser {
             objects << parsePropertyObject()
             readNextNonEmptyLine()
         }
+
+        return objects
     }
 
     private def parseDataList() {

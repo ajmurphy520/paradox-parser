@@ -85,14 +85,17 @@ class SaveParserSpec extends Specification {
         SaveParser.parseSaveGameFile(testFile).property == ['123', '456', '789']
     }
 
-    void "should parse empty data arrays"() {
+    void "should parse empty data maps"() {
         given:
         testFile << 'overseas_penalty=\n'
         testFile << '{\n'
         testFile << '}\n'
 
-        expect:
-        SaveParser.parseSaveGameFile(testFile).overseas_penalty == []
+        when:
+        def saveGame = SaveParser.parseSaveGameFile(testFile)
+
+        then:
+        saveGame.overseas_penalty == [:]
     }
 
     void "should handle extra whitespace in data arrays"() {
@@ -117,6 +120,30 @@ class SaveParserSpec extends Specification {
         then:
         saveGame.date == '1836.1.1'
         saveGame.government == '7'
+    }
+
+    void "should handle object lists"() {
+        given:
+        testFile << 'property=\n'
+        testFile << '{\n\n'
+        testFile << '\t{\n'
+        testFile << '\t\tproperty1=someValue\n'
+        testFile << '\t\tproperty2=someValue2\n'
+        testFile << '\t}\n\n'
+        testFile << '\t{\n'
+        testFile << '\t\tproperty1=someValue3\n'
+        testFile << '\t\tproperty2=someValue4\n'
+        testFile << '\t}\n'
+        testFile << '}\n'
+
+        when:
+        def saveGame = SaveParser.parseSaveGameFile(testFile)
+
+        then:
+        saveGame.property[0].property1 == 'someValue'
+        saveGame.property[0].property2 == 'someValue2'
+        saveGame.property[1].property1 == 'someValue3'
+        saveGame.property[1].property2 == 'someValue4'
     }
 
     private static File createTempTestFile() {
