@@ -188,8 +188,8 @@ class Victoria2SaveTranslator {
         singlePop.type = popType
         singlePop.provinceId = provinceId
         singlePop.size = parseToInteger(popData.size)
-        singlePop.money = parseToBigDecimal(popData.money) / 100.0
-        singlePop.bank = parseToBigDecimal(popData.bank) / 100.0
+        singlePop.money = parseMoney(popData.money)
+        singlePop.bank = parseMoney(popData.bank)
         singlePop.lifeNeeds = parseToBigDecimal(popData.life_needs)
         singlePop.everydayNeeds = parseToBigDecimal(popData.everyday_needs)
         singlePop.luxuryNeeds = parseToBigDecimal(popData.luxury_needs)
@@ -200,8 +200,8 @@ class Victoria2SaveTranslator {
             singlePop.leftover = parseToBigDecimal(popData.leftover)
             singlePop.stockpile = processGoodAmounts(popData.stockpile)
             singlePop.needs = processGoodAmounts(popData.needs)
-            singlePop.spending = parseToBigDecimal(popData.last_spending)
-            singlePop.income = parseToBigDecimal(popData.production_income)
+            singlePop.spending = parseMoney(popData.last_spending)
+            singlePop.income = parseMoney(popData.production_income)
             singlePop.soldDomestic = parseToBigDecimal(popData.percent_sold_domestic)
             singlePop.soldExport = parseToBigDecimal(popData.percent_sold_export)
         }
@@ -251,6 +251,10 @@ class Victoria2SaveTranslator {
 
     private static Integer parseToInteger(String input) {
         return input != null ? input.toInteger() : 0
+    }
+
+    private static BigDecimal parseMoney(String input) {
+        return parseToBigDecimal(input) / 1000.0
     }
 
     private static BigDecimal parseToBigDecimal(String input) {
