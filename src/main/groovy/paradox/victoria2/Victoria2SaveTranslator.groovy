@@ -143,6 +143,7 @@ class Victoria2SaveTranslator {
     }
 
     private void processSphereMembership(Victoria2Game gameState, Country sphereLeader, def countryData) {
+        gameState.sphereMembership."${sphereLeader.tag}" = sphereLeader
         configData.countryTags.each { tag ->
             if (countryData."${tag}" != null && parseToInteger(countryData."${tag}".level) == 5) {
                 gameState.sphereMembership.put(tag, sphereLeader)
@@ -193,7 +194,7 @@ class Victoria2SaveTranslator {
         singlePop.everydayNeeds = parseToBigDecimal(popData.everyday_needs)
         singlePop.luxuryNeeds = parseToBigDecimal(popData.luxury_needs)
 
-        if (popType == 'artisan') {
+        if (popType == 'artisans') {
             singlePop.outputGood = getGoodTypeFromProductionType(popData.production_type)
             singlePop.productionAmount = parseToBigDecimal(popData.current_producing)
             singlePop.leftover = parseToBigDecimal(popData.leftover)
